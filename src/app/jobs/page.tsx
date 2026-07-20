@@ -1,23 +1,62 @@
-import JobCard from "@/components/shared/JobCard";
+"use client";
 
-const MOCK_JOBS = [
-  { id: "1", title: "Senior Frontend Developer", company: "TechNova Solutions", location: "San Francisco (Hybrid)", salary: "$120k–$150k", type: "Full-time", postedAt: "2 hours ago", matchScore: 98 },
-  { id: "2", title: "Product Designer", company: "CreativeFlow", location: "Remote", salary: "$90k–$120k", type: "Full-time", postedAt: "5 hours ago", matchScore: 85 },
-  { id: "3", title: "Backend Engineer (Go)", company: "DataSync Inc.", location: "New York, NY", salary: "$140k–$170k", type: "Full-time", postedAt: "1 day ago", matchScore: 92 },
-  { id: "4", title: "DevOps Specialist", company: "CloudNative", location: "Austin, TX (Remote)", salary: "$130k–$160k", type: "Contract", postedAt: "2 days ago", matchScore: 78 },
-  { id: "5", title: "UX/UI Lead", company: "Innovate Labs", location: "Seattle, WA", salary: "$110k–$145k", type: "Full-time", postedAt: "3 days ago", matchScore: 88 },
-  { id: "6", title: "Full Stack Developer", company: "StartupX", location: "Remote", salary: "$100k–$130k", type: "Full-time", postedAt: "4 days ago", matchScore: 95 },
-  { id: "7", title: "Data Scientist", company: "AnalyticsHQ", location: "Boston, MA", salary: "$125k–$155k", type: "Full-time", postedAt: "5 days ago", matchScore: 81 },
-  { id: "8", title: "Mobile Engineer (iOS)", company: "AppCraft", location: "Remote", salary: "$115k–$140k", type: "Contract", postedAt: "1 week ago", matchScore: 76 },
-];
+import JobCard from "@/components/shared/JobCard";
+import { useState, useEffect } from "react";
 
 const JOB_TYPES = ["All Types", "Full-time", "Part-time", "Contract", "Internship"];
 const SORT_OPTIONS = ["Best Match", "Most Recent", "Salary (High to Low)"];
 
 export default function JobsPage() {
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [keyword, setKeyword] = useState("");
+  const [location, setLocation] = useState("");
+  const [jobType, setJobType] = useState("All Types");
+  
+  // Pagination
+  const [page, setPage] = useState(1);
+  const pageSize = 8;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  const fetchJobs = async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        pageNumber: page.toString(),
+        pageSize: pageSize.toString(),
+      });
+      if (keyword) params.append("keyword", keyword);
+      if (location) params.append("location", location);
+      if (jobType && jobType !== "All Types") params.append("jobType", jobType);
+
+      // Using the standard Next.js rewrites or full URL for backend API
+      const res = await fetch(`http://localhost:5000/api/jobs?${params.toString()}`);
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data.items || []);
+        setTotalCount(data.totalCount || 0);
+      }
+    } catch (error) {
+      console.error("Failed to fetch jobs", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchJobs();
+  }, [page]); // Re-fetch when page changes
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchJobs();
+  };
+
   return (
     <div style={{ background: "#f0f4ff", minHeight: "100vh" }}>
-
       {/* ── Search Header ── */}
       <div
         style={{
@@ -64,6 +103,9 @@ export default function JobsPage() {
               <input
                 type="text"
                 placeholder="Job title, keywords, or company"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 style={{
                   border: "none",
                   outline: "none",
@@ -91,6 +133,9 @@ export default function JobsPage() {
               <input
                 type="text"
                 placeholder="Location or Remote"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 style={{
                   border: "none",
                   outline: "none",
@@ -103,6 +148,7 @@ export default function JobsPage() {
             </div>
 
             <button
+              onClick={handleSearch}
               style={{
                 flexShrink: 0,
                 background: "linear-gradient(135deg, #4f46e5, #6366f1)",
@@ -123,24 +169,31 @@ export default function JobsPage() {
 
           {/* Filter chips */}
           <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {JOB_TYPES.map((t, i) => (
-              <button
-                key={t}
-                style={{
-                  padding: "0.35rem 1rem",
-                  borderRadius: 9999,
-                  fontSize: "0.82rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  border: i === 0 ? "2px solid #4f46e5" : "1.5px solid rgba(148,163,184,0.25)",
-                  background: i === 0 ? "rgba(99,102,241,0.08)" : "transparent",
-                  color: i === 0 ? "#4f46e5" : "#64748b",
-                  transition: "all 0.18s",
-                }}
-              >
-                {t}
-              </button>
-            ))}
+            {JOB_TYPES.map((t) => {
+              const isActive = jobType === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setJobType(t);
+                    setPage(1); // reset page on filter change
+                  }}
+                  style={{
+                    padding: "0.35rem 1rem",
+                    borderRadius: 9999,
+                    fontSize: "0.82rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    border: isActive ? "2px solid #4f46e5" : "1.5px solid rgba(148,163,184,0.25)",
+                    background: isActive ? "rgba(99,102,241,0.08)" : "transparent",
+                    color: isActive ? "#4f46e5" : "#64748b",
+                    transition: "all 0.18s",
+                  }}
+                >
+                  {t}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -160,7 +213,7 @@ export default function JobsPage() {
         >
           <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
             Showing{" "}
-            <strong style={{ color: "#0f172a" }}>342 jobs</strong> matching your search
+            <strong style={{ color: "#0f172a" }}>{totalCount} jobs</strong> matching your search
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{ fontSize: "0.82rem", color: "#64748b" }}>Sort:</span>
@@ -184,42 +237,70 @@ export default function JobsPage() {
           </div>
         </div>
 
-        {/* Job grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "1.25rem",
-          }}
-        >
-          {MOCK_JOBS.map((job) => (
-            <JobCard key={job.id} {...job} />
-          ))}
-        </div>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
+            Loading jobs...
+          </div>
+        ) : jobs.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
+            No jobs found matching your criteria.
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "1.25rem",
+            }}
+          >
+            {jobs.map((job) => (
+              <JobCard key={job.id} {...job} />
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem", gap: "0.5rem" }}>
-          {["←", "1", "2", "3", "...", "28", "→"].map((p, i) => (
+        {totalPages > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem", gap: "0.5rem" }}>
             <button
-              key={i}
+              disabled={page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
               style={{
-                width: p.length > 1 ? "auto" : 40,
                 height: 40,
-                padding: p.length > 1 ? "0 0.75rem" : undefined,
+                padding: "0 0.75rem",
                 borderRadius: 10,
-                border: p === "1" ? "none" : "1.5px solid rgba(148,163,184,0.25)",
-                background: p === "1" ? "linear-gradient(135deg,#4f46e5,#6366f1)" : "#fff",
-                color: p === "1" ? "#fff" : "#64748b",
-                fontWeight: p === "1" ? 700 : 500,
+                border: "1.5px solid rgba(148,163,184,0.25)",
+                background: "#fff",
+                color: page === 1 ? "#cbd5e1" : "#64748b",
+                fontWeight: 500,
                 fontSize: "0.88rem",
-                cursor: "pointer",
-                boxShadow: p === "1" ? "0 4px 14px rgba(99,102,241,0.3)" : "none",
+                cursor: page === 1 ? "not-allowed" : "pointer",
               }}
             >
-              {p}
+              Previous
             </button>
-          ))}
-        </div>
+            <span style={{ display: "flex", alignItems: "center", margin: "0 0.5rem", fontSize: "0.9rem", color: "#64748b" }}>
+              Page {page} of {totalPages}
+            </span>
+            <button
+              disabled={page === totalPages}
+              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              style={{
+                height: 40,
+                padding: "0 0.75rem",
+                borderRadius: 10,
+                border: "1.5px solid rgba(148,163,184,0.25)",
+                background: "#fff",
+                color: page === totalPages ? "#cbd5e1" : "#64748b",
+                fontWeight: 500,
+                fontSize: "0.88rem",
+                cursor: page === totalPages ? "not-allowed" : "pointer",
+              }}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
