@@ -46,17 +46,13 @@ export default function JobDetailsPage() {
 
     setApplying(true);
     try {
-      // Try to post to applications endpoint if it exists
       await api.post('/applications', { jobId: id });
       setApplied(true);
     } catch (err: any) {
-      // For now, if the endpoint doesn't exist (404), we just simulate success for demo purposes
-      if (err.response?.status === 404 || err.response?.status === 401) {
-         setApplied(true);
-      } else {
-         console.error('Failed to apply', err);
-         alert(err.response?.data?.title || 'Failed to apply. Please try again later.');
-      }
+      console.error('Failed to apply', err);
+      // Backend returns 400 with "You have already applied for this job."
+      const msg = err.response?.data?.message || err.response?.data || 'Failed to apply. Please try again later.';
+      alert(typeof msg === 'string' ? msg : 'Failed to apply.');
     } finally {
       setApplying(false);
     }

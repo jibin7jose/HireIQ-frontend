@@ -93,14 +93,12 @@ export default function EmployerDashboard() {
                     <span className="bg-neutral-800 px-2 py-0.5 rounded text-xs">{job.jobType}</span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="text-right">
-                    <p className="text-white font-medium">12</p>
-                    <p className="text-neutral-500 text-xs">Applicants</p>
+                  <div className="flex items-center space-x-4 text-sm">
+                    <Link href={`/employer/jobs/${job.id}/applications`} className="text-blue-400 hover:text-blue-300 font-medium bg-blue-500/10 px-4 py-2 rounded-lg transition-colors">
+                      View Applicants
+                    </Link>
                   </div>
-                  <button className="text-blue-400 hover:text-blue-300 font-medium">Manage</button>
                 </div>
-              </div>
             ))}
           </div>
         )}
