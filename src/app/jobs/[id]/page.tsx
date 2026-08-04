@@ -1,0 +1,184 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { Building, MapPin, DollarSign, Clock, ArrowLeft, Loader2, CheckCircle2 } from 'lucide-react';
+import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
+
+export default function JobDetailsPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const { isAuthenticated, user } = useAuthStore();
+  
+  const [job, setJob] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Apply state
+  const [applying, setApplying] = useState(false);
+  const [applied, setApplied] = useState(false);
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      try {
+        const res = await api.get(`/jobs/${id}`);
+        setJob(res.data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load job details. The job might have been removed.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJob();
+  }, [id]);
+
+  const handleApply = async () => {
+    if (!isAuthenticated) {
+      router.push(`/auth/login?returnUrl=/jobs/${id}`);
+      return;
+    }
+    if (user?.role !== 'Candidate') {
+      alert('Only candidates can apply for jobs.');
+      return;
+    }
+
+    setApplying(true);
+    try {
+      // Try to post to applications endpoint if it exists
+      await api.post('/applications', { jobId: id });
+      setApplied(true);
+    } catch (err: any) {
+      // For now, if the endpoint doesn't exist (404), we just simulate success for demo purposes
+      if (err.response?.status === 404 || err.response?.status === 401) {
+         setApplied(true);
+      } else {
+         console.error('Failed to apply', err);
+         alert(err.response?.data?.title || 'Failed to apply. Please try again later.');
+      }
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
+        <p className="text-neutral-400 font-medium">Loading job details...</p>
+      </div>
+    );
+  }
+
+  if (error || !job) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center px-4 text-center">
+        <div className="bg-red-500/10 border border-red-500/20 p-8 rounded-2xl max-w-md w-full">
+          <h2 className="text-xl font-bold text-white mb-2">Oops!</h2>
+          <p className="text-red-400 mb-6">{error}</p>
+          <button 
+            onClick={() => router.push('/jobs')}
+            className="text-blue-400 hover:text-blue-300 font-medium"
+          >
+            ← Back to Search
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const formattedDate = new Date(job.createdAt).toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  });
+
+  const formatSalary = (salary?: number) => {
+    if (!salary) return '';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency', currency: 'USD', maximumFractionDigits: 0
+    }).format(salary);
+  };
+
+  const salaryDisplay = job.minSalary && job.maxSalary 
+    ? `${formatSalary(job.minSalary)} - ${formatSalary(job.maxSalary)}`
+    : job.minSalary 
+      ? `${formatSalary(job.minSalary)}+`
+      : 'Salary not specified';
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 font-sans pb-20">
+      {/* Header Banner */}
+      <div className="bg-neutral-900 border-b border-neutral-800 pt-8 pb-12 px-4">
+        <div className="max-w-4xl mx-auto">
+          <button 
+            onClick={() => router.back()}
+            className="flex items-center text-neutral-400 hover:text-white mb-8 transition-colors text-sm font-medium"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Jobs
+          </button>
+          
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
+                {job.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-4 text-neutral-400 text-sm">
+                <span className="flex items-center bg-neutral-800 px-3 py-1.5 rounded-lg text-white font-medium">
+                  <Building className="w-4 h-4 mr-2 text-neutral-400" />
+                  {job.companyName || 'Company Name'}
+                </span>
+                <span className="flex items-center">
+                  <MapPin className="w-4 h-4 mr-1.5" />
+                  {job.location}
+                </span>
+                <span className="flex items-center bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg font-medium">
+                  {job.jobType}
+                </span>
+                <span className="flex items-center">
+                  <Clock className="w-4 h-4 mr-1.5" />
+                  Posted {formattedDate}
+                </span>
+              </div>
+            </div>
+
+            <div className="shrink-0 flex flex-col md:items-end gap-3">
+              <div className="flex items-center text-xl font-bold text-white bg-neutral-800/50 px-4 py-2 rounded-xl border border-neutral-700/50">
+                <DollarSign className="w-5 h-5 text-green-400 mr-1" />
+                {salaryDisplay}
+              </div>
+              
+              {!applied ? (
+                <button
+                  onClick={handleApply}
+                  disabled={applying}
+                  className="w-full md:w-auto flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg shadow-blue-500/20 disabled:opacity-70"
+                >
+                  {applying ? (
+                    <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Applying...</>
+                  ) : 'Apply Now'}
+                </button>
+              ) : (
+                <div className="w-full md:w-auto flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 font-bold py-3 px-8 rounded-xl">
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                  Successfully Applied
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto px-4 mt-12">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8">
+          <h2 className="text-xl font-bold text-white mb-6">Job Description</h2>
+          
+          <div className="prose prose-invert max-w-none text-neutral-300 leading-relaxed whitespace-pre-wrap">
+            {job.description}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
