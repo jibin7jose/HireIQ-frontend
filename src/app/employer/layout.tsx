@@ -1,0 +1,34 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/authStore';
+import Sidebar from '@/components/shared/Sidebar';
+
+export default function EmployerLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const { isAuthenticated, user } = useAuthStore();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+    } else if (user?.role !== 'Employer') {
+      router.push('/');
+    }
+  }, [isAuthenticated, user, router]);
+
+  if (!isAuthenticated || user?.role !== 'Employer') {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-950 flex font-sans text-neutral-200">
+      <Sidebar role="Employer" />
+      <main className="flex-1 ml-64 p-8">
+        <div className="max-w-6xl mx-auto">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
