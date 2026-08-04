@@ -1,46 +1,34 @@
-"use client";
+'use client';
 
-import JobCard from "@/components/shared/JobCard";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import { Search, MapPin, Loader2, Filter } from 'lucide-react';
+import api from '@/lib/api';
+import JobCard, { JobDto } from '@/components/candidate/JobCard';
 
-const JOB_TYPES = ["All Types", "Full-time", "Part-time", "Contract", "Internship"];
-const SORT_OPTIONS = ["Best Match", "Most Recent", "Salary (High to Low)"];
-
-export default function JobsPage() {
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+export default function JobSearchPage() {
+  const [jobs, setJobs] = useState<JobDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Filters
-  const [keyword, setKeyword] = useState("");
-  const [location, setLocation] = useState("");
-  const [jobType, setJobType] = useState("All Types");
-  
-  // Pagination
-  const [page, setPage] = useState(1);
-  const pageSize = 8;
-  const totalPages = Math.ceil(totalCount / pageSize);
+  // Search state
+  const [keyword, setKeyword] = useState('');
+  const [location, setLocation] = useState('');
+  const [jobType, setJobType] = useState('');
 
   const fetchJobs = async () => {
     setLoading(true);
+    setError('');
     try {
-      const params = new URLSearchParams({
-        pageNumber: page.toString(),
-        pageSize: pageSize.toString(),
-      });
-      if (keyword) params.append("keyword", keyword);
-      if (location) params.append("location", location);
-      if (jobType && jobType !== "All Types") params.append("jobType", jobType);
+      const params = new URLSearchParams();
+      if (keyword) params.append('keyword', keyword);
+      if (location) params.append('location', location);
+      if (jobType) params.append('jobType', jobType);
 
-      // Using the standard Next.js rewrites or full URL for backend API
-      const res = await fetch(`http://localhost:5000/api/jobs?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setJobs(data.items || []);
-        setTotalCount(data.totalCount || 0);
-      }
-    } catch (error) {
-      console.error("Failed to fetch jobs", error);
+      const res = await api.get(`/jobs?${params.toString()}`);
+      setJobs(res.data.items || []);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch jobs. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -48,260 +36,151 @@ export default function JobsPage() {
 
   useEffect(() => {
     fetchJobs();
-  }, [page]); // Re-fetch when page changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleSearch = () => {
-    setPage(1);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     fetchJobs();
   };
 
   return (
-    <div style={{ background: "#f0f4ff", minHeight: "100vh" }}>
-      {/* ── Search Header ── */}
-      <div
-        style={{
-          background: "#fff",
-          borderBottom: "1px solid rgba(148,163,184,0.18)",
-          padding: "2.5rem 1.5rem 2rem",
-        }}
-      >
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <h1
-            style={{
-              fontSize: "2rem",
-              fontWeight: 800,
-              color: "#0f172a",
-              marginBottom: "1.5rem",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Find Your Next Role
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 font-sans">
+      {/* Hero Search Section */}
+      <section className="relative py-20 px-4 overflow-hidden border-b border-neutral-800">
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[80%] h-[80%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none" />
+        
+        <div className="max-w-5xl mx-auto relative z-10 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
+            Find your next <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">opportunity</span>
           </h1>
+          <p className="text-lg text-neutral-400 mb-10 max-w-2xl mx-auto">
+            Search thousands of jobs from verified companies and let our AI match you with the perfect role.
+          </p>
 
-          {/* Search row */}
-          <div
-            style={{
-              display: "flex",
-              gap: "0.75rem",
-              flexWrap: "wrap",
-              marginBottom: "1.25rem",
-            }}
-          >
-            <div
-              style={{
-                flex: "1 1 260px",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.6rem",
-                background: "#f8fafc",
-                border: "1.5px solid rgba(148,163,184,0.25)",
-                borderRadius: 10,
-                padding: "0.6rem 1rem",
-              }}
-            >
-              <span style={{ fontSize: "1rem", flexShrink: 0 }}>🔍</span>
+          <form onSubmit={handleSearch} className="bg-neutral-900/80 backdrop-blur-md border border-neutral-800 rounded-2xl p-2 flex flex-col md:flex-row gap-2 max-w-4xl mx-auto shadow-2xl">
+            <div className="flex-1 relative flex items-center px-4 py-2 border-b md:border-b-0 md:border-r border-neutral-800">
+              <Search className="w-5 h-5 text-neutral-500 mr-3 shrink-0" />
               <input
                 type="text"
                 placeholder="Job title, keywords, or company"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                style={{
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  fontSize: "0.9rem",
-                  color: "#0f172a",
-                  width: "100%",
-                }}
+                className="w-full bg-transparent border-none text-white focus:outline-none focus:ring-0 placeholder:text-neutral-500 text-lg"
               />
             </div>
-
-            <div
-              style={{
-                flex: "0 1 220px",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.6rem",
-                background: "#f8fafc",
-                border: "1.5px solid rgba(148,163,184,0.25)",
-                borderRadius: 10,
-                padding: "0.6rem 1rem",
-              }}
-            >
-              <span style={{ fontSize: "1rem", flexShrink: 0 }}>📍</span>
+            
+            <div className="flex-1 relative flex items-center px-4 py-2">
+              <MapPin className="w-5 h-5 text-neutral-500 mr-3 shrink-0" />
               <input
                 type="text"
-                placeholder="Location or Remote"
+                placeholder="City, state, or Remote"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                style={{
-                  border: "none",
-                  outline: "none",
-                  background: "transparent",
-                  fontSize: "0.9rem",
-                  color: "#0f172a",
-                  width: "100%",
-                }}
+                className="w-full bg-transparent border-none text-white focus:outline-none focus:ring-0 placeholder:text-neutral-500 text-lg"
               />
             </div>
 
-            <button
-              onClick={handleSearch}
-              style={{
-                flexShrink: 0,
-                background: "linear-gradient(135deg, #4f46e5, #6366f1)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 10,
-                padding: "0.7rem 2rem",
-                fontWeight: 700,
-                fontSize: "0.92rem",
-                cursor: "pointer",
-                boxShadow: "0 4px 16px rgba(99,102,241,0.35)",
-                transition: "filter 0.18s",
-              }}
+            <button 
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 px-8 rounded-xl transition-colors shrink-0"
             >
               Search Jobs
             </button>
-          </div>
-
-          {/* Filter chips */}
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {JOB_TYPES.map((t) => {
-              const isActive = jobType === t;
-              return (
-                <button
-                  key={t}
-                  onClick={() => {
-                    setJobType(t);
-                    setPage(1); // reset page on filter change
-                  }}
-                  style={{
-                    padding: "0.35rem 1rem",
-                    borderRadius: 9999,
-                    fontSize: "0.82rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    border: isActive ? "2px solid #4f46e5" : "1.5px solid rgba(148,163,184,0.25)",
-                    background: isActive ? "rgba(99,102,241,0.08)" : "transparent",
-                    color: isActive ? "#4f46e5" : "#64748b",
-                    transition: "all 0.18s",
-                  }}
-                >
-                  {t}
-                </button>
-              );
-            })}
-          </div>
+          </form>
         </div>
-      </div>
+      </section>
 
-      {/* ── Job Feed ── */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
-        {/* Results bar */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1.5rem",
-            flexWrap: "wrap",
-            gap: "0.75rem",
-          }}
-        >
-          <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
-            Showing{" "}
-            <strong style={{ color: "#0f172a" }}>{totalCount} jobs</strong> matching your search
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ fontSize: "0.82rem", color: "#64748b" }}>Sort:</span>
-            <select
-              style={{
-                border: "1.5px solid rgba(148,163,184,0.25)",
-                borderRadius: 8,
-                padding: "0.35rem 0.75rem",
-                fontSize: "0.82rem",
-                fontWeight: 600,
-                color: "#0f172a",
-                background: "#fff",
-                cursor: "pointer",
-                outline: "none",
-              }}
-            >
-              {SORT_OPTIONS.map((o) => (
-                <option key={o}>{o}</option>
+      {/* Main Content */}
+      <section className="max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
+        
+        {/* Filters Sidebar */}
+        <aside className="w-full md:w-64 shrink-0 space-y-6">
+          <div className="flex items-center space-x-2 text-white font-semibold text-lg mb-4">
+            <Filter className="w-5 h-5" />
+            <h2>Filters</h2>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-neutral-400 uppercase tracking-wider">Job Type</h3>
+            <div className="space-y-2">
+              {['Full-Time', 'Part-Time', 'Contract', 'Remote'].map((type) => (
+                <label key={type} className="flex items-center space-x-3 cursor-pointer group">
+                  <input 
+                    type="radio" 
+                    name="jobType" 
+                    value={type}
+                    checked={jobType === type}
+                    onChange={(e) => {
+                      setJobType(e.target.value);
+                      setTimeout(fetchJobs, 50); // Fetch when filter changes
+                    }}
+                    className="w-4 h-4 rounded-full border-neutral-700 bg-neutral-900 text-blue-500 focus:ring-blue-500/50" 
+                  />
+                  <span className="text-neutral-300 group-hover:text-white transition-colors">{type}</span>
+                </label>
               ))}
-            </select>
+              <label className="flex items-center space-x-3 cursor-pointer group mt-4">
+                <input 
+                  type="radio" 
+                  name="jobType" 
+                  value=""
+                  checked={jobType === ''}
+                  onChange={(e) => {
+                    setJobType('');
+                    setTimeout(fetchJobs, 50);
+                  }}
+                  className="w-4 h-4 rounded-full border-neutral-700 bg-neutral-900 text-blue-500 focus:ring-blue-500/50" 
+                />
+                <span className="text-neutral-400 text-sm">Clear Filter</span>
+              </label>
+            </div>
           </div>
+        </aside>
+
+        {/* Job Listings */}
+        <div className="flex-1 space-y-6">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-xl font-semibold text-white">
+              {loading ? 'Searching...' : `${jobs.length} jobs found`}
+            </h2>
+          </div>
+
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-400">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
+              <p className="text-neutral-400">Finding the best matches...</p>
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center py-20 border border-neutral-800 rounded-2xl bg-neutral-900/50">
+              <h3 className="text-xl font-semibold text-white mb-2">No jobs found</h3>
+              <p className="text-neutral-400">Try adjusting your search keywords or filters.</p>
+              <button 
+                onClick={() => {
+                  setKeyword(''); setLocation(''); setJobType('');
+                  setTimeout(fetchJobs, 50);
+                }}
+                className="mt-6 text-blue-400 hover:text-blue-300 font-medium"
+              >
+                Clear all filters
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {jobs.map(job => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
-            Loading jobs...
-          </div>
-        ) : jobs.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>
-            No jobs found matching your criteria.
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "1.25rem",
-            }}
-          >
-            {jobs.map((job) => (
-              <JobCard key={job.id} {...job} />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem", gap: "0.5rem" }}>
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              style={{
-                height: 40,
-                padding: "0 0.75rem",
-                borderRadius: 10,
-                border: "1.5px solid rgba(148,163,184,0.25)",
-                background: "#fff",
-                color: page === 1 ? "#cbd5e1" : "#64748b",
-                fontWeight: 500,
-                fontSize: "0.88rem",
-                cursor: page === 1 ? "not-allowed" : "pointer",
-              }}
-            >
-              Previous
-            </button>
-            <span style={{ display: "flex", alignItems: "center", margin: "0 0.5rem", fontSize: "0.9rem", color: "#64748b" }}>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              style={{
-                height: 40,
-                padding: "0 0.75rem",
-                borderRadius: 10,
-                border: "1.5px solid rgba(148,163,184,0.25)",
-                background: "#fff",
-                color: page === totalPages ? "#cbd5e1" : "#64748b",
-                fontWeight: 500,
-                fontSize: "0.88rem",
-                cursor: page === totalPages ? "not-allowed" : "pointer",
-              }}
-            >
-              Next
-            </button>
-          </div>
-        )}
-      </div>
+      </section>
     </div>
   );
 }
