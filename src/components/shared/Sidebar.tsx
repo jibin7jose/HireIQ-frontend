@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { LogOut, Home, Briefcase, User, Settings, FileText, Users } from 'lucide-react';
 
 interface SidebarProps {
-  role: 'Candidate' | 'Employer';
+  role: 'Candidate' | 'Employer' | 'Admin';
 }
 
 export default function Sidebar({ role }: SidebarProps) {
@@ -31,7 +31,13 @@ export default function Sidebar({ role }: SidebarProps) {
     { name: 'Company Profile', href: '/employer/profile', icon: User },
   ];
 
-  const links = role === 'Candidate' ? candidateLinks : employerLinks;
+  const adminLinks = [
+    { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
+    { name: 'Companies', href: '/admin/companies', icon: Briefcase },
+    { name: 'Users', href: '/admin/users', icon: Users },
+  ];
+
+  const links = role === 'Admin' ? adminLinks : role === 'Candidate' ? candidateLinks : employerLinks;
 
   return (
     <div className="w-64 bg-neutral-950 border-r border-neutral-800 h-screen flex flex-col fixed left-0 top-0 z-50">

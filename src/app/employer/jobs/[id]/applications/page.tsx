@@ -26,15 +26,17 @@ export default function JobApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState<ApplicationStatus | ''>('');
 
   useEffect(() => {
     fetchApplications();
-  }, [id]);
+  }, [id, statusFilter]);
 
   const fetchApplications = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/applications/job/${id}`);
+      const url = statusFilter ? `/applications/job/${id}?statusFilter=${statusFilter}` : `/applications/job/${id}`;
+      const response = await api.get(url);
       setApplications(response.data);
     } catch (err: any) {
       console.error(err);
@@ -78,6 +80,25 @@ export default function JobApplicationsPage() {
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Review and manage candidates who applied for this position.
             </p>
+          </div>
+
+          <div className="flex items-center space-x-4 mb-6">
+            <label htmlFor="status-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Filter by Status:
+            </label>
+            <select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as ApplicationStatus | '')}
+              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+            >
+              <option value="">All Applications</option>
+              <option value="Pending">Pending</option>
+              <option value="Reviewed">Reviewed</option>
+              <option value="Shortlisted">Shortlisted</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Hired">Hired</option>
+            </select>
           </div>
 
           {error && (
