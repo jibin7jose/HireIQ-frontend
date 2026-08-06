@@ -9,6 +9,7 @@ import Link from 'next/link';
 export default function CandidateDashboard() {
   const user = useAuthStore((state) => state.user);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [interviews, setInterviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -16,15 +17,25 @@ export default function CandidateDashboard() {
       try {
         // Fetch recommended jobs from our new AI Matching endpoint!
         const res = await api.get('/jobs/recommended');
-        // The backend returns an array directly, not a paginated result
         setJobs(res.data || []);
       } catch (err) {
         console.error('Failed to fetch jobs', err);
+      }
+    };
+    
+    const fetchInterviews = async () => {
+      try {
+        const res = await api.get('/interviews/candidate');
+        setInterviews(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch interviews', err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchRecommendedJobs();
+    fetchInterviews();
   }, []);
 
   const stats = [
@@ -57,6 +68,33 @@ export default function CandidateDashboard() {
           );
         })}
       </div>
+
+      {/* Upcoming Interviews */}
+      {!loading && interviews.length > 0 && (
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
+          <h2 className="text-xl font-bold text-white mb-6">Upcoming Interviews</h2>
+          <div className="space-y-4">
+            {interviews.filter(i => i.status === 'Scheduled').map(interview => (
+              <div key={interview.id} className="p-5 rounded-xl border border-blue-500/30 bg-blue-500/5 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-white">{interview.jobTitle} at {interview.companyName}</h3>
+                  <p className="text-sm text-neutral-400 mt-1">
+                    Scheduled for: {new Date(interview.scheduledAt).toLocaleString()} ({interview.durationMinutes} mins)
+                  </p>
+                </div>
+                <a 
+                  href={interview.meetingLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors"
+                >
+                  Join Meeting
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recommended Jobs */}
       <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">

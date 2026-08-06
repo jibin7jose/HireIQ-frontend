@@ -27,6 +27,10 @@ export default function JobApplicationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | ''>('');
+  const [scheduleAppId, setScheduleAppId] = useState<string | null>(null);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduling, setScheduling] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -56,6 +60,36 @@ export default function JobApplicationsPage() {
     } catch (err: any) {
       console.error(err);
       alert('Failed to update status.');
+    }
+  };
+
+  const handleScheduleSubmit = async (appId: string) => {
+    if (!scheduleDate || !scheduleTime) {
+      alert('Please select date and time');
+      return;
+    }
+    
+    try {
+      setScheduling(true);
+      const scheduledAt = new Date(`${scheduleDate}T${scheduleTime}`).toISOString();
+      await api.post('/interviews', {
+        applicationId: appId,
+        scheduledAt,
+        durationMinutes: 45
+      });
+      
+      // Update local status to Shortlisted
+      setApplications((prev) =>
+        prev.map((app) => (app.id === appId ? { ...app, status: 'Shortlisted' } : app))
+      );
+      
+      setScheduleAppId(null);
+      alert('Interview scheduled successfully! An email with the meeting link has been sent to the candidate.');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to schedule interview.');
+    } finally {
+      setScheduling(false);
     }
   };
 
@@ -181,10 +215,10 @@ export default function JobApplicationsPage() {
                         <div className="flex gap-2 w-full">
                           {app.status !== 'Shortlisted' && (
                             <button
-                              onClick={() => updateStatus(app.id, 'Shortlisted')}
+                              onClick={() => setScheduleAppId(scheduleAppId === app.id ? null : app.id)}
                               className="flex-1 bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50 py-2 rounded-lg text-sm font-medium transition-colors"
                             >
-                              Shortlist
+                              Shortlist & Schedule
                             </button>
                           )}
                           {app.status !== 'Rejected' && (
@@ -196,6 +230,33 @@ export default function JobApplicationsPage() {
                             </button>
                           )}
                         </div>
+                        
+                        {scheduleAppId === app.id && (
+                          <div className="mt-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-inner">
+                            <h4 className="text-sm font-semibold mb-3 text-gray-800 dark:text-gray-200">Schedule Interview</h4>
+                            <div className="flex flex-col gap-3">
+                              <input 
+                                type="date" 
+                                value={scheduleDate}
+                                onChange={(e) => setScheduleDate(e.target.value)}
+                                className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                              />
+                              <input 
+                                type="time" 
+                                value={scheduleTime}
+                                onChange={(e) => setScheduleTime(e.target.value)}
+                                className="w-full text-sm rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                              />
+                              <button 
+                                onClick={() => handleScheduleSubmit(app.id)}
+                                disabled={scheduling}
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md text-sm font-medium transition disabled:opacity-50"
+                              >
+                                {scheduling ? 'Scheduling...' : 'Confirm Schedule'}
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         {app.resumeUrl && (
                           <a
