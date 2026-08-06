@@ -52,6 +52,7 @@ export default function JobApplicationsPage() {
       setApplications((prev) =>
         prev.map((app) => (app.id === appId ? { ...app, status: newStatus } : app))
       );
+      alert(`Status updated to ${newStatus}. The candidate has been notified via email.`);
     } catch (err: any) {
       console.error(err);
       alert('Failed to update status.');
