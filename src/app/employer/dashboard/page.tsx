@@ -9,16 +9,18 @@ import Link from 'next/link';
 export default function EmployerDashboard() {
   const user = useAuthStore((state) => state.user);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [statsData, setStatsData] = useState({ activeJobs: 0, totalApplicants: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMyJobs = async () => {
       try {
-        // Fetch jobs for the current employer
-        // Assuming your backend handles this, or we just fetch generic for demo
-        const res = await api.get('/jobs?pageSize=5');
-        // Filter by company/employer logic here later
-        setJobs(res.data.items || []);
+        const [jobsRes, statsRes] = await Promise.all([
+          api.get('/jobs?pageSize=5'),
+          api.get('/companies/stats')
+        ]);
+        setJobs(jobsRes.data.items || []);
+        setStatsData(statsRes.data);
       } catch (err) {
         console.error('Failed to fetch jobs', err);
       } finally {
@@ -29,8 +31,8 @@ export default function EmployerDashboard() {
   }, []);
 
   const stats = [
-    { title: 'Active Jobs', value: '3', icon: Briefcase, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { title: 'Total Applicants', value: '142', icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { title: 'Active Jobs', value: statsData.activeJobs.toString(), icon: Briefcase, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { title: 'Total Applicants', value: statsData.totalApplicants.toString(), icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
   ];
 
   return (
