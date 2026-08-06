@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+import { Loader2, FileText, UploadCloud, FileType } from "lucide-react";
+import api from "@/lib/api";
 
 interface ResumeUploadProps {
   currentResumeUrl?: string;
@@ -31,45 +33,34 @@ export default function ResumeUpload({ currentResumeUrl, onUploadSuccess }: Resu
     formData.append("file", file);
 
     try {
-      const token = localStorage.getItem("token"); // Assuming token is stored in localStorage
-      const res = await fetch("http://localhost:5000/api/users/me/resume", {
-        method: "POST",
+      const res = await api.post("/users/me/resume", formData, {
         headers: {
-          Authorization: `Bearer ${token}`
+          "Content-Type": "multipart/form-data",
         },
-        body: formData,
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to upload resume.");
-      }
-
-      const data = await res.json();
-      onUploadSuccess(data.url);
+      onUploadSuccess(res.data.url);
       
-      // Reset input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     } catch (err: any) {
-      setError(err.message || "An error occurred during upload.");
+      setError(err.response?.data?.message || err.message || "An error occurred during upload.");
     } finally {
       setIsUploading(false);
     }
   };
 
   return (
-    <div style={{ marginTop: "1rem" }}>
-      <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.5rem" }}>Resume</h3>
-      
+    <div className="mt-4">
       {currentResumeUrl && (
-        <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span style={{ fontSize: "1.2rem" }}>📄</span>
+        <div className="mb-4 flex items-center space-x-2 bg-blue-500/10 p-3 rounded-xl border border-blue-500/20 w-max">
+          <FileText className="w-5 h-5 text-blue-400" />
           <a
             href={currentResumeUrl}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "#4f46e5", textDecoration: "none", fontWeight: 500 }}
+            className="text-blue-400 font-medium hover:text-blue-300 transition-colors"
           >
             View Current Resume
           </a>
@@ -77,16 +68,11 @@ export default function ResumeUpload({ currentResumeUrl, onUploadSuccess }: Resu
       )}
 
       <div
-        style={{
-          border: "2px dashed rgba(148,163,184,0.3)",
-          borderRadius: 12,
-          padding: "2rem",
-          textAlign: "center",
-          background: "#f8fafc",
-          position: "relative",
-          cursor: isUploading ? "wait" : "pointer",
-          transition: "border-color 0.2s"
-        }}
+        className={`border-2 border-dashed rounded-2xl p-8 text-center relative transition-all duration-200 ${
+          isUploading
+            ? "border-neutral-700 bg-neutral-900/50 cursor-wait"
+            : "border-neutral-700 hover:border-blue-500 bg-neutral-900 hover:bg-neutral-800 cursor-pointer"
+        }`}
         onClick={() => !isUploading && fileInputRef.current?.click()}
       >
         <input
@@ -94,25 +80,35 @@ export default function ResumeUpload({ currentResumeUrl, onUploadSuccess }: Resu
           accept=".pdf,application/pdf"
           ref={fileInputRef}
           onChange={handleFileChange}
-          style={{ display: "none" }}
+          className="hidden"
           disabled={isUploading}
         />
         
         {isUploading ? (
-          <p style={{ color: "#4f46e5", fontWeight: 500 }}>Uploading...</p>
+          <div className="flex flex-col items-center justify-center py-4">
+            <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-3" />
+            <p className="text-blue-400 font-medium">Uploading and Parsing Resume...</p>
+            <p className="text-neutral-500 text-sm mt-1">Our AI is extracting your skills and experience.</p>
+          </div>
         ) : (
-          <div>
-            <span style={{ fontSize: "2rem", display: "block", marginBottom: "0.5rem" }}>☁️</span>
-            <p style={{ color: "#0f172a", fontWeight: 600, marginBottom: "0.25rem" }}>
+          <div className="flex flex-col items-center justify-center">
+            <div className="bg-neutral-800 p-4 rounded-full mb-4 group-hover:bg-neutral-700 transition-colors">
+              <UploadCloud className="w-8 h-8 text-blue-400" />
+            </div>
+            <p className="text-white font-semibold mb-1">
               Click to upload your resume
             </p>
-            <p style={{ color: "#64748b", fontSize: "0.85rem" }}>PDF up to 5MB</p>
+            <p className="text-neutral-500 text-sm flex items-center">
+              <FileType className="w-4 h-4 mr-1" /> PDF up to 5MB
+            </p>
           </div>
         )}
       </div>
 
       {error && (
-        <p style={{ color: "#ef4444", fontSize: "0.85rem", marginTop: "0.5rem" }}>{error}</p>
+        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+          <p className="text-red-400 text-sm">{error}</p>
+        </div>
       )}
     </div>
   );

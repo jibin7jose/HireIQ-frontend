@@ -12,6 +12,7 @@ export interface JobDto {
   maxSalary?: number;
   companyName?: string;
   createdAt: string;
+  aiMatchScore?: number;
 }
 
 interface JobCardProps {
@@ -62,10 +63,17 @@ export default function JobCard({ job }: JobCardProps) {
               </span>
             </div>
           </div>
-          <span className="bg-blue-500/10 text-blue-400 text-xs font-medium px-3 py-1 rounded-full border border-blue-500/20">
-            {job.jobType}
-          </span>
-        </div>
+            <div className="flex flex-col items-end space-y-2">
+              {job.aiMatchScore && (
+                <span className="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20 flex items-center shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                  ✨ {job.aiMatchScore}% Match
+                </span>
+              )}
+              <span className="bg-blue-500/10 text-blue-400 text-xs font-medium px-3 py-1 rounded-full border border-blue-500/20">
+                {job.jobType}
+              </span>
+            </div>
+          </div>
 
         <div className="mt-6 pt-4 border-t border-neutral-800 flex items-center justify-between text-sm text-neutral-500">
           <span className="flex items-center text-neutral-300 font-medium">

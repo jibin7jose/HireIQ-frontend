@@ -14,9 +14,10 @@ export default function CandidateDashboard() {
   useEffect(() => {
     const fetchRecommendedJobs = async () => {
       try {
-        // We fetch generic jobs for now as "recommended"
-        const res = await api.get('/jobs?pageSize=3');
-        setJobs(res.data.items || []);
+        // Fetch recommended jobs from our new AI Matching endpoint!
+        const res = await api.get('/jobs/recommended');
+        // The backend returns an array directly, not a paginated result
+        setJobs(res.data || []);
       } catch (err) {
         console.error('Failed to fetch jobs', err);
       } finally {
@@ -77,9 +78,10 @@ export default function CandidateDashboard() {
         ) : (
           <div className="space-y-4">
             {jobs.map((job) => (
-              <div key={job.id} className="p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 bg-neutral-950/50 transition-all group flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">{job.title}</h3>
+              <Link key={job.id} href={`/jobs/${job.id}`} className="block p-4 rounded-xl border border-neutral-800 hover:border-neutral-700 bg-neutral-950/50 transition-all group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors">{job.title}</h3>
                   <div className="flex items-center text-sm text-neutral-400 mt-1 space-x-3">
                     <span>{job.companyName || 'Company'}</span>
                     <span>•</span>
@@ -87,11 +89,18 @@ export default function CandidateDashboard() {
                     <span>•</span>
                     <span className="bg-neutral-800 px-2 py-0.5 rounded text-xs">{job.jobType}</span>
                   </div>
+                  <div className="flex flex-col items-end space-y-2">
+                    {job.aiMatchScore && (
+                      <span className="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                        ✨ {job.aiMatchScore}% Match
+                      </span>
+                    )}
+                    <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
+                      Apply
+                    </button>
+                  </div>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
-                  Apply
-                </button>
-              </div>
+              </Link>
             ))}
           </div>
         )}
