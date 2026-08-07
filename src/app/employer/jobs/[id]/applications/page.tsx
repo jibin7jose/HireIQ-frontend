@@ -6,7 +6,8 @@ import api from '@/lib/api';
 import { ApplicationStatus } from '@/types';
 import Sidebar from '@/components/shared/Sidebar';
 import ChatWindow from '@/components/shared/ChatWindow';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle, Sparkles, Video } from 'lucide-react';
+import Link from 'next/link';
 
 interface Application {
   id: string;
@@ -21,6 +22,8 @@ interface Application {
   status: ApplicationStatus;
   aiMatchScore: number;
   appliedAt: string;
+  meetingLink?: string;
+  interviewDate?: string;
 }
 
 interface RecommendedCandidate {
@@ -290,6 +293,22 @@ export default function JobApplicationsPage() {
                             </button>
                           )}
                         </div>
+
+                        {app.meetingLink && (
+                          <div className="w-full mt-2">
+                            <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-1">
+                              Scheduled for: {new Date(app.interviewDate!).toLocaleString()}
+                            </p>
+                            <Link
+                              href={app.meetingLink}
+                              target="_blank"
+                              className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                            >
+                              <Video className="w-4 h-4" />
+                              Join Video Interview
+                            </Link>
+                          </div>
+                        )}
                         
                         {scheduleAppId === app.id && (
                           <div className="mt-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-inner">
