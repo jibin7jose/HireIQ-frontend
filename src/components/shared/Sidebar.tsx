@@ -4,7 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { LogOut, Home, Briefcase, User, Settings, FileText, Users } from 'lucide-react';
+import { LogOut, Home, Briefcase, User, Settings, FileText, Users, Bell, Check, X } from 'lucide-react';
+import { useSignalR } from '@/hooks/useSignalR';
+import { useNotificationStore } from '@/store/notificationStore';
 
 interface SidebarProps {
   role: 'Candidate' | 'Employer' | 'Admin';
@@ -14,6 +16,10 @@ export default function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
+  const [showNotifications, setShowNotifications] = React.useState(false);
+  
+  useSignalR();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
 
   const candidateLinks = [
     { name: 'Dashboard', href: '/candidate/dashboard', icon: Home },
@@ -73,6 +79,56 @@ export default function Sidebar({ role }: SidebarProps) {
           <p className="text-sm font-medium text-white truncate">{user?.fullName || 'User'}</p>
           <p className="text-xs text-neutral-400 truncate">{user?.email}</p>
         </div>
+        <div className="relative mb-4">
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            className="w-full flex items-center justify-between px-4 py-3 text-neutral-400 hover:bg-neutral-900 hover:text-white rounded-xl transition-all"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </div>
+              <span className="font-medium">Notifications</span>
+            </div>
+          </button>
+
+          {showNotifications && (
+            <div className="absolute bottom-full left-0 w-72 mb-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-xl overflow-hidden z-50">
+              <div className="p-3 border-b border-neutral-800 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-white">Notifications</h3>
+                <button onClick={markAllAsRead} className="text-xs text-blue-400 hover:text-blue-300">
+                  Mark all as read
+                </button>
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-neutral-500">No notifications</div>
+                ) : (
+                  notifications.map(n => (
+                    <div 
+                      key={n.id} 
+                      onClick={() => markAsRead(n.id)}
+                      className={`p-3 border-b border-neutral-800/50 cursor-pointer hover:bg-neutral-800 transition-colors ${!n.read ? 'bg-blue-500/5' : ''}`}
+                    >
+                      <p className={`text-sm ${!n.read ? 'text-white font-medium' : 'text-neutral-400'}`}>
+                        {n.message}
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         <button
           onClick={() => logout()}
           className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-xl transition-all"

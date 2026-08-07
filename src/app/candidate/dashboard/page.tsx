@@ -127,6 +127,7 @@ export default function CandidateDashboard() {
                     <span>•</span>
                     <span className="bg-neutral-800 px-2 py-0.5 rounded text-xs">{job.jobType}</span>
                   </div>
+                  </div>
                   <div className="flex flex-col items-end space-y-2">
                     {job.aiMatchScore && (
                       <span className="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
