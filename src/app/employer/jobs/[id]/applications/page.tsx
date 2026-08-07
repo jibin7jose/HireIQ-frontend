@@ -6,7 +6,7 @@ import api from '@/lib/api';
 import { ApplicationStatus } from '@/types';
 import Sidebar from '@/components/shared/Sidebar';
 import ChatWindow from '@/components/shared/ChatWindow';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Sparkles } from 'lucide-react';
 
 interface Application {
   id: string;
@@ -23,6 +23,15 @@ interface Application {
   appliedAt: string;
 }
 
+interface RecommendedCandidate {
+  candidateId: string;
+  fullName: string;
+  avatarUrl: string;
+  experienceSummary: string;
+  skills: string[];
+  aiMatchScore: number;
+}
+
 export default function JobApplicationsPage() {
   const { id } = useParams();
   const [applications, setApplications] = useState<Application[]>([]);
@@ -34,10 +43,32 @@ export default function JobApplicationsPage() {
   const [scheduleTime, setScheduleTime] = useState('');
   const [scheduling, setScheduling] = useState(false);
   const [activeChatAppId, setActiveChatAppId] = useState<string | null>(null);
+  
+  const [activeTab, setActiveTab] = useState<'Applications' | 'AI_Recommendations'>('Applications');
+  const [recommendedCandidates, setRecommendedCandidates] = useState<RecommendedCandidate[]>([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
 
   useEffect(() => {
     fetchApplications();
   }, [id, statusFilter]);
+
+  useEffect(() => {
+    if (activeTab === 'AI_Recommendations' && recommendedCandidates.length === 0) {
+      fetchRecommendations();
+    }
+  }, [activeTab]);
+
+  const fetchRecommendations = async () => {
+    try {
+      setLoadingRecommendations(true);
+      const response = await api.get(`/jobs/${id}/recommended-candidates`);
+      setRecommendedCandidates(response.data);
+    } catch (err) {
+      console.error('Failed to load recommended candidates', err);
+    } finally {
+      setLoadingRecommendations(false);
+    }
+  };
 
   const fetchApplications = async () => {
     try {
@@ -120,10 +151,36 @@ export default function JobApplicationsPage() {
             </p>
           </div>
 
-          <div className="flex items-center space-x-4 mb-6">
-            <label htmlFor="status-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Filter by Status:
-            </label>
+          <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <button
+              onClick={() => setActiveTab('Applications')}
+              className={`pb-2 px-1 text-sm font-medium ${
+                activeTab === 'Applications'
+                  ? 'border-b-2 border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              Applications ({applications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('AI_Recommendations')}
+              className={`pb-2 px-1 text-sm font-medium flex items-center ${
+                activeTab === 'AI_Recommendations'
+                  ? 'border-b-2 border-purple-500 text-purple-600 dark:text-purple-400'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <Sparkles className="w-4 h-4 mr-1.5" />
+              AI Recommendations
+            </button>
+          </div>
+
+          {activeTab === 'Applications' ? (
+            <>
+              <div className="flex items-center space-x-4 mb-6">
+                <label htmlFor="status-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Filter by Status:
+                </label>
             <select
               id="status-filter"
               value={statusFilter}
@@ -290,6 +347,91 @@ export default function JobApplicationsPage() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+          </>
+          ) : (
+            // AI Recommendations Tab
+            <div className="grid gap-6">
+              {loadingRecommendations ? (
+                <div className="flex justify-center p-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+                </div>
+              ) : recommendedCandidates.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-12 text-center">
+                  <Sparkles className="w-12 h-12 text-purple-500/50 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No AI Matches Found</h3>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    We couldn't find any candidates that strongly match this job description right now.
+                  </p>
+                </div>
+              ) : (
+                recommendedCandidates.map((candidate) => (
+                  <div key={candidate.candidateId} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-purple-100 dark:border-purple-900/30 p-6 transition-all hover:shadow-md relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-indigo-500" />
+                    <div className="flex flex-col lg:flex-row justify-between gap-6 pl-4">
+                      {/* Candidate Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                            <span className="text-xl font-bold text-purple-600 dark:text-purple-400">
+                              {candidate.fullName.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                              {candidate.fullName}
+                              <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded-full flex items-center">
+                                <Sparkles className="w-3 h-3 mr-1" /> Top Match
+                              </span>
+                            </h2>
+                          </div>
+                        </div>
+
+                        {candidate.skills && candidate.skills.length > 0 && (
+                          <div className="mb-4">
+                            <div className="flex flex-wrap gap-2">
+                              {candidate.skills.map((skill, idx) => (
+                                <span key={idx} className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
+                                  {skill}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {candidate.experienceSummary && (
+                          <div>
+                            <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Experience Summary</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">{candidate.experienceSummary}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right Side: Score & Actions */}
+                      <div className="flex flex-col lg:items-end justify-between min-w-[200px]">
+                        <div className="flex flex-col items-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg w-full border border-purple-100 dark:border-purple-800/30">
+                          <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">AI Score</span>
+                          <div className="text-4xl font-black mt-1 text-purple-600 dark:text-purple-400">
+                            {candidate.aiMatchScore}%
+                          </div>
+                        </div>
+
+                        <div className="mt-6 w-full flex flex-col gap-3">
+                          <button
+                            onClick={() => {
+                              alert('Invitation sent! (This would send an email/notification to the candidate)');
+                            }}
+                            className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Invite to Apply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>

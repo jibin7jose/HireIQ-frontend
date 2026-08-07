@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import ResumeUpload from '@/components/candidate/ResumeUpload';
-import { Loader2, Briefcase, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Loader2, Briefcase, GraduationCap, CheckCircle2, BellRing } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function CandidateProfilePage() {
@@ -31,6 +31,16 @@ export default function CandidateProfilePage() {
   const handleUploadSuccess = (url: string) => {
     // When resume uploads, re-fetch profile to get new AI parsed data!
     fetchProfile();
+  };
+
+  const handleToggleAlerts = async () => {
+    try {
+      const newValue = !profile.receiveJobAlerts;
+      await api.put('/users/me/profile', { receiveJobAlerts: newValue });
+      setProfile({ ...profile, receiveJobAlerts: newValue });
+    } catch (err) {
+      console.error('Failed to update job alerts preference', err);
+    }
   };
 
   if (loading) {
@@ -69,6 +79,27 @@ export default function CandidateProfilePage() {
             <p className="text-xs text-neutral-500 mt-4 leading-relaxed">
               When you upload a new resume, our AI will automatically parse it and update your profile!
             </p>
+          </div>
+
+          <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center">
+              <BellRing className="w-5 h-5 mr-2 text-blue-400" /> Preferences
+            </h2>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-neutral-200">Daily AI Job Alerts</p>
+                <p className="text-xs text-neutral-500 mt-1">Receive an email with top AI-matched jobs.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={profile?.receiveJobAlerts ?? false}
+                  onChange={handleToggleAlerts} 
+                />
+                <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+              </label>
+            </div>
           </div>
         </div>
 
