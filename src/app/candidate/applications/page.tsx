@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import Sidebar from '@/components/shared/Sidebar';
 import ChatWindow from '@/components/shared/ChatWindow';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Video } from 'lucide-react';
+import Link from 'next/link';
 import { ApplicationStatus } from '@/types';
 
 interface CandidateApplication {
@@ -14,6 +15,8 @@ interface CandidateApplication {
   companyName: string;
   status: ApplicationStatus;
   appliedAt: string;
+  meetingLink?: string;
+  interviewDate?: string;
 }
 
 export default function CandidateApplicationsPage() {
@@ -97,10 +100,26 @@ export default function CandidateApplicationsPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col lg:items-end justify-start min-w-[200px]">
+                    <div className="flex flex-col lg:items-end justify-start min-w-[200px] gap-2">
+                      {app.meetingLink && (
+                        <div className="w-full">
+                          <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-1">
+                            Scheduled for: {new Date(app.interviewDate!).toLocaleString()}
+                          </p>
+                          <Link
+                            href={app.meetingLink}
+                            target="_blank"
+                            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            <Video className="w-4 h-4" />
+                            Join Interview
+                          </Link>
+                        </div>
+                      )}
+                      
                       <button
                         onClick={() => setActiveChatAppId(activeChatAppId === app.id ? null : app.id)}
-                        className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 border border-blue-500/30 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/10 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-blue-500/30 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/10 transition-colors"
                       >
                         <MessageCircle className="w-4 h-4" />
                         {activeChatAppId === app.id ? 'Close Chat' : 'Chat with Employer'}
