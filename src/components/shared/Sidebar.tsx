@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
-import { LogOut, Home, Briefcase, User, Settings, FileText, Users, Bell, Check, X } from 'lucide-react';
+import { LogOut, Home, Briefcase, User, Settings, FileText, Users, Bell, Check, X, Sparkles } from 'lucide-react';
 import { useSignalR } from '@/hooks/useSignalR';
 import { useNotificationStore } from '@/store/notificationStore';
 
@@ -23,6 +23,7 @@ export default function Sidebar({ role }: SidebarProps) {
 
   const candidateLinks = [
     { name: 'Dashboard', href: '/candidate/dashboard', icon: Home },
+    { name: 'Discover', href: '/candidate/discover', icon: Sparkles },
     { name: 'My Applications', href: '/candidate/applications', icon: FileText },
     { name: 'Find Jobs', href: '/jobs', icon: Briefcase },
     { name: 'Profile', href: '/candidate/profile', icon: User },

@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Loader2, Filter } from 'lucide-react';
+import { Search, MapPin, Loader2, Filter, Map, List } from 'lucide-react';
 import api from '@/lib/api';
 import JobCard, { JobDto } from '@/components/candidate/JobCard';
+import dynamic from 'next/dynamic';
+
+const JobMap = dynamic(() => import('@/components/jobs/JobMap'), { ssr: false, loading: () => <div className="w-full h-full min-h-[600px] flex items-center justify-center bg-neutral-900 rounded-xl"><Loader2 className="w-8 h-8 text-blue-500 animate-spin" /></div> });
 
 export default function JobSearchPage() {
   const [jobs, setJobs] = useState<JobDto[]>([]);
@@ -14,6 +17,9 @@ export default function JobSearchPage() {
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [jobType, setJobType] = useState('');
+  
+  // View state
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const fetchJobs = async () => {
     setLoading(true);
@@ -144,6 +150,20 @@ export default function JobSearchPage() {
             <h2 className="text-xl font-semibold text-white">
               {loading ? 'Searching...' : `${jobs.length} jobs found`}
             </h2>
+            <div className="flex items-center space-x-2 bg-neutral-900 border border-neutral-800 rounded-lg p-1">
+              <button 
+                onClick={() => setViewMode('list')}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'list' ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'}`}
+              >
+                <List className="w-4 h-4 mr-2" /> List
+              </button>
+              <button 
+                onClick={() => setViewMode('map')}
+                className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'map' ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'}`}
+              >
+                <Map className="w-4 h-4 mr-2" /> Map
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -172,11 +192,15 @@ export default function JobSearchPage() {
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
-              {jobs.map(job => (
-                <JobCard key={job.id} job={job} />
-              ))}
-            </div>
+            viewMode === 'map' ? (
+              <JobMap jobs={jobs} />
+            ) : (
+              <div className="space-y-4">
+                {jobs.map(job => (
+                  <JobCard key={job.id} job={job} />
+                ))}
+              </div>
+            )
           )}
         </div>
 
