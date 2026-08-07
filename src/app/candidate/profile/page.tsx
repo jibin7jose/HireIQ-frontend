@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import ResumeUpload from '@/components/candidate/ResumeUpload';
-import { Loader2, Briefcase, GraduationCap, CheckCircle2, BellRing } from 'lucide-react';
+import Web3ConnectButton from '@/components/candidate/Web3ConnectButton';
+import { Loader2, Briefcase, GraduationCap, CheckCircle2, BellRing, ShieldCheck } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function CandidateProfilePage() {
@@ -100,6 +101,16 @@ export default function CandidateProfilePage() {
                 <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
               </label>
             </div>
+          </div>
+
+          <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl">
+            <h2 className="text-lg font-bold text-white mb-4 flex items-center">
+              <ShieldCheck className="w-5 h-5 mr-2 text-blue-400" /> Web3 Identity
+            </h2>
+            <Web3ConnectButton 
+              currentAddress={profile?.walletAddress} 
+              onConnect={(addr) => setProfile({ ...profile, walletAddress: addr })} 
+            />
           </div>
         </div>
 
