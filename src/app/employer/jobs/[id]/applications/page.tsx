@@ -96,7 +96,7 @@ export default function JobApplicationsPage() {
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-        <Sidebar />
+        <Sidebar role="Employer" />
         <main className="flex-1 p-8 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
         </main>
@@ -106,7 +106,7 @@ export default function JobApplicationsPage() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      <Sidebar />
+      <Sidebar role="Employer" />
       
       <main className="flex-1 overflow-y-auto p-8">
         <div className="max-w-7xl mx-auto space-y-6">
