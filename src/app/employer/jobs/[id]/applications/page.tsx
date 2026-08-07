@@ -5,6 +5,8 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import { ApplicationStatus } from '@/types';
 import Sidebar from '@/components/shared/Sidebar';
+import ChatWindow from '@/components/shared/ChatWindow';
+import { MessageCircle } from 'lucide-react';
 
 interface Application {
   id: string;
@@ -31,6 +33,7 @@ export default function JobApplicationsPage() {
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('');
   const [scheduling, setScheduling] = useState(false);
+  const [activeChatAppId, setActiveChatAppId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchApplications();
@@ -268,9 +271,23 @@ export default function JobApplicationsPage() {
                             View Resume PDF
                           </a>
                         )}
+
+                        <button
+                          onClick={() => setActiveChatAppId(activeChatAppId === app.id ? null : app.id)}
+                          className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 border border-blue-500/30 text-blue-500 rounded-lg text-sm font-medium hover:bg-blue-500/10 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          {activeChatAppId === app.id ? 'Close Chat' : 'Chat with Candidate'}
+                        </button>
                       </div>
                     </div>
                   </div>
+                  
+                  {activeChatAppId === app.id && (
+                    <div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-6">
+                      <ChatWindow applicationId={app.id} />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
