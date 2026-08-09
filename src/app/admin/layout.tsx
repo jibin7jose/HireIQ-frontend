@@ -9,15 +9,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
+  const [isHydrated, setIsHydrated] = React.useState(false);
+
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
     if (!isAuthenticated) {
       router.push('/auth/login');
     } else if (user?.role !== 'Admin') {
       router.push('/');
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, isHydrated]);
 
-  if (!isAuthenticated || user?.role !== 'Admin') {
+  if (!isHydrated || !isAuthenticated || user?.role !== 'Admin') {
     return null;
   }
 

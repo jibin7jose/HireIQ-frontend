@@ -18,7 +18,7 @@ export const useSignalR = () => {
     }
 
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:5001/hubs/notifications', {
+      .withUrl('http://localhost:5128/hubs/notifications', {
         accessTokenFactory: () => token
       })
       .withAutomaticReconnect()

@@ -110,7 +110,8 @@ export default function ChatWindow({ applicationId }: ChatWindowProps) {
           </div>
         ) : (
           messages.map((msg, i) => {
-            const isMe = msg.senderUserId === user?.id;
+            const isMe = msg.senderUserId.toLowerCase() === user?.id?.toLowerCase() || 
+                         msg.senderUserId.toLowerCase() === (user as any)?.userId?.toLowerCase();
             
             return (
               <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>

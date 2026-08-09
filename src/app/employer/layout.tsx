@@ -9,7 +9,15 @@ export default function EmployerLayout({ children }: { children: React.ReactNode
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
+  const [isHydrated, setIsHydrated] = React.useState(false);
+
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!isAuthenticated) {
       router.push('/auth/login');
     } else if (user?.role !== 'Employer') {
@@ -17,7 +25,7 @@ export default function EmployerLayout({ children }: { children: React.ReactNode
     }
   }, [isAuthenticated, user, router]);
 
-  if (!isAuthenticated || user?.role !== 'Employer') {
+  if (!isHydrated || !isAuthenticated || user?.role !== 'Employer') {
     return null;
   }
 

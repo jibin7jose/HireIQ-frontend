@@ -35,7 +35,8 @@ export default function LoginPage() {
       }
 
       const response = await api.post('/auth/login', { email, password });
-      const { token, ...user } = response.data;
+      const { token, userId, ...userData } = response.data;
+      const user = { id: userId, ...userData };
       
       setAuth(user, token);
       
@@ -44,6 +45,8 @@ export default function LoginPage() {
         router.push('/candidate/dashboard');
       } else if (user.role === 'Employer') {
         router.push('/employer/dashboard');
+      } else if (user.role === 'Admin') {
+        router.push('/admin/dashboard');
       } else {
         router.push('/');
       }
