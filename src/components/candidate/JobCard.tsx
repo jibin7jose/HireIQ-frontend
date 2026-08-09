@@ -11,7 +11,7 @@ export interface JobDto {
   minSalary?: number;
   maxSalary?: number;
   companyName?: string;
-  createdAt: string;
+  postedAt: string;
   aiMatchScore?: number;
 }
 
@@ -20,7 +20,7 @@ interface JobCardProps {
 }
 
 export default function JobCard({ job }: JobCardProps) {
-  const formattedDate = new Date(job.createdAt).toLocaleDateString('en-US', {
+  const formattedDate = new Date(job.postedAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric'

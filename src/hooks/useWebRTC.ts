@@ -77,7 +77,7 @@ export function useWebRTC({ roomId, token }: UseWebRTCProps) {
         };
 
         // 3. Setup SignalR Hub
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7087';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5128';
         const connection = new signalR.HubConnectionBuilder()
           .withUrl(`${API_URL}/hubs/video?access_token=${token}`)
           .withAutomaticReconnect()
@@ -192,8 +192,15 @@ export function useWebRTC({ roomId, token }: UseWebRTCProps) {
     if (hubConnectionRef.current?.state === signalR.HubConnectionState.Connected) {
       hubConnectionRef.current.invoke('LeaveRoom', roomId).catch(console.error);
     }
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+    }
+    if (localVideoRef.current?.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+    }
     window.close(); // Attempt to close window or user can navigate back
-    window.location.href = '/'; 
+    window.history.back();
   };
 
   return {

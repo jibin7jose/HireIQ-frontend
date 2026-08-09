@@ -12,12 +12,20 @@ export default function VideoInterviewRoom() {
   const { user, token } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
+  const [isHydrated, setIsHydrated] = useState(false);
+
   useEffect(() => {
+    setIsHydrated(true);
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    
     if (!user && token === null) {
-      router.push('/login');
+      router.push('/auth/login');
     }
-  }, [user, token, router]);
+  }, [isHydrated, user, token, router]);
 
   const {
     localVideoRef,

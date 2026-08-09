@@ -9,7 +9,15 @@ export default function CandidateLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
 
+  const [isHydrated, setIsHydrated] = React.useState(false);
+
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    
     // If not authenticated or not a candidate, redirect
     if (!isAuthenticated) {
       router.push('/auth/login');
@@ -18,8 +26,8 @@ export default function CandidateLayout({ children }: { children: React.ReactNod
     }
   }, [isAuthenticated, user, router]);
 
-  // Prevent rendering children briefly while redirecting
-  if (!isAuthenticated || user?.role !== 'Candidate') {
+  // Prevent rendering children briefly while redirecting or hydrating
+  if (!isHydrated || !isAuthenticated || user?.role !== 'Candidate') {
     return null;
   }
 
