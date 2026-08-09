@@ -22,8 +22,20 @@ export default function LoginPage() {
     setError('');
 
     try {
+      if (!email.toLowerCase().endsWith('@gmail.com')) {
+        setError('Please use a valid Gmail address (@gmail.com).');
+        setLoading(false);
+        return;
+      }
+      
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long.');
+        setLoading(false);
+        return;
+      }
+
       const response = await api.post('/auth/login', { email, password });
-      const { user, token } = response.data;
+      const { token, ...user } = response.data;
       
       setAuth(user, token);
       
