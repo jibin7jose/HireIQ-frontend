@@ -52,7 +52,7 @@ export default function LoginPage() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.title || err.response?.data || 'Invalid email or password. Please try again.');
+      setError(err.response?.data?.detail || err.response?.data?.title || 'Invalid email or password. Please try again.');
     } finally {
       setLoading(false);
     }

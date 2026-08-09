@@ -85,7 +85,7 @@ export default function CandidateApplicationsPage() {
                     <div className="flex-1">
                       <h2 className="text-xl font-bold text-gray-900 dark:text-white">{app.jobTitle}</h2>
                       <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                        {app.companyName} • Applied on {new Date(app.appliedAt).toLocaleDateString()}
+                        {app.companyName} • {app.status === 'Invited' ? 'Invited on' : 'Applied on'} {new Date(app.appliedAt).toLocaleDateString()}
                       </div>
                       
                       <div className="flex items-center text-sm">
@@ -93,9 +93,10 @@ export default function CandidateApplicationsPage() {
                           <span className={`font-medium ${
                             app.status === 'Shortlisted' ? 'text-green-600 dark:text-green-400' : 
                             app.status === 'Rejected' ? 'text-red-600 dark:text-red-400' : 
+                            app.status === 'Invited' ? 'text-purple-600 dark:text-purple-400' :
                             'text-amber-600 dark:text-amber-400'
                           }`}>
-                            {app.status}
+                            {app.status === 'Invited' ? 'Invited to Apply' : app.status}
                           </span>
                       </div>
                     </div>

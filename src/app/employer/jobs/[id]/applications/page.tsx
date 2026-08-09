@@ -130,6 +130,20 @@ export default function JobApplicationsPage() {
     }
   };
 
+  const handleInvite = async (candidateId: string, score: number) => {
+    try {
+      await api.post(`/jobs/${id}/invite`, { candidateUserId: candidateId, aiMatchScore: score });
+      alert('Invitation sent successfully! The candidate has been notified.');
+      // Remove candidate from recommendations list since they are now invited
+      setRecommendedCandidates((prev) => prev.filter(c => c.candidateId !== candidateId));
+      // Refresh applications list to show the newly created application
+      fetchApplications();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.response?.data?.message || 'Failed to send invitation.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -437,9 +451,7 @@ export default function JobApplicationsPage() {
 
                         <div className="mt-6 w-full flex flex-col gap-3">
                           <button
-                            onClick={() => {
-                              alert('Invitation sent! (This would send an email/notification to the candidate)');
-                            }}
+                            onClick={() => handleInvite(candidate.candidateId, candidate.aiMatchScore)}
                             className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm font-medium transition-colors"
                           >
                             Invite to Apply

@@ -35,12 +35,14 @@ export default function Sidebar({ role }: SidebarProps) {
     { name: 'Post a Job', href: '/employer/jobs/new', icon: Briefcase },
     { name: 'My Jobs', href: '/employer/jobs', icon: Briefcase },
     { name: 'Company Profile', href: '/employer/profile', icon: User },
+    { name: 'Settings', href: '/employer/settings', icon: Settings },
   ];
 
   const adminLinks = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: Home },
     { name: 'Companies', href: '/admin/companies', icon: Briefcase },
     { name: 'Users', href: '/admin/users', icon: Users },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
   const links = role === 'Admin' ? adminLinks : role === 'Candidate' ? candidateLinks : employerLinks;
