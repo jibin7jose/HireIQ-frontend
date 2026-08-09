@@ -84,7 +84,7 @@ export default function JobDetailsPage() {
     );
   }
 
-  const formattedDate = new Date(job.createdAt).toLocaleDateString('en-US', {
+  const formattedDate = new Date(job.postedAt).toLocaleDateString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric'
   });
 

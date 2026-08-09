@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Create an Axios instance
 const api = axios.create({
-  // The .NET Web API usually runs on 5000 (HTTP) or 5001 (HTTPS)
-  baseURL: 'http://localhost:5000/api', 
+  // The .NET Web API is running on port 5128
+  baseURL: 'http://localhost:5128/api',
   headers: {
     'Content-Type': 'application/json',
   },

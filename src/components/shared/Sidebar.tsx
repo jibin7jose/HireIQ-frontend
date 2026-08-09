@@ -34,7 +34,6 @@ export default function Sidebar({ role }: SidebarProps) {
     { name: 'Dashboard', href: '/employer/dashboard', icon: Home },
     { name: 'Post a Job', href: '/employer/jobs/new', icon: Briefcase },
     { name: 'My Jobs', href: '/employer/jobs', icon: Briefcase },
-    { name: 'Applicants', href: '/employer/applicants', icon: Users },
     { name: 'Company Profile', href: '/employer/profile', icon: User },
   ];
 
