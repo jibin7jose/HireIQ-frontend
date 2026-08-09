@@ -39,7 +39,7 @@ export default function RegisterPage() {
       router.push('/auth/login?registered=true');
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.title || err.response?.data || 'An error occurred during registration.');
+      setError(err.response?.data?.detail || err.response?.data?.title || 'An error occurred during registration.');
     } finally {
       setLoading(false);
     }

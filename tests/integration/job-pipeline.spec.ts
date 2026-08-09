@@ -52,7 +52,7 @@ test.describe('Job Pipeline Flow', () => {
     await employerPage.locator('input[name="location"]').fill('Remote');
     await employerPage.locator('input[name="minSalary"]').fill('90000');
     await employerPage.locator('input[name="maxSalary"]').fill('150000');
-    await employerPage.locator('textarea[name="description"]').fill('This is a test job description for E2E testing.');
+    await employerPage.locator('textarea[name="description"]').fill('This is a test job description for E2E testing that meets the 50 character minimum requirement.');
     
     await employerPage.getByRole('button', { name: 'Post Job' }).click();
     await employerPage.waitForURL(/\/employer\/dashboard/);
