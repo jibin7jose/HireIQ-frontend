@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import GlobalNavigation from "@/components/shared/GlobalNavigation";
 import GlobalFooter from "@/components/shared/GlobalFooter";
+import NotificationProvider from "@/components/shared/NotificationProvider";
 
 export const metadata: Metadata = {
   title: "CareerConnect AI – Find Jobs Matched by AI",
@@ -36,9 +37,11 @@ export default function RootLayout({
         />
       </head>
       <body style={{ margin: 0, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-        <GlobalNavigation />
-        <main style={{ flex: 1 }}>{children}</main>
-        <GlobalFooter />
+        <NotificationProvider>
+          <GlobalNavigation />
+          <main style={{ flex: 1 }}>{children}</main>
+          <GlobalFooter />
+        </NotificationProvider>
       </body>
     </html>
   );
