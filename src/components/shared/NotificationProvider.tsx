@@ -1,62 +1,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import * as signalR from "@microsoft/signalr";
 import { useAuthStore } from "@/store/authStore";
+import { useNotificationStore } from "@/store/notificationStore";
 import { Bell, X } from "lucide-react";
-
-type Notification = {
-  id: string;
-  message: string;
-  type: string;
-  timestamp: string;
-};
+import type { Notification } from "@/store/notificationStore";
 
 export default function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { token, user } = useAuthStore();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const { notifications } = useNotificationStore();
+  
+  // Local state for active toasts
+  const [activeToasts, setActiveToasts] = useState<Notification[]>([]);
+  // Keep track of which notifications we've already shown
+  const [shownIds, setShownIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!token || !user) return;
 
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5128/hubs/notifications", {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect()
-      .build();
+    // Find new notifications that haven't been shown yet and are unread
+    const newNotifications = notifications.filter(
+      (n) => !n.read && !shownIds.has(n.id)
+    );
 
-    connection.on("ReceiveNotification", (notification: any) => {
-      const newNotification: Notification = {
-        id: Math.random().toString(36).substring(7),
-        message: notification.message,
-        type: notification.type,
-        timestamp: notification.timestamp,
-      };
+    if (newNotifications.length > 0) {
+      setActiveToasts((prev) => [...prev, ...newNotifications]);
+      
+      setShownIds((prev) => {
+        const next = new Set(prev);
+        newNotifications.forEach(n => next.add(n.id));
+        return next;
+      });
 
-      setNotifications((prev) => [...prev, newNotification]);
-
-      // Auto-dismiss after 5 seconds
-      setTimeout(() => {
-        setNotifications((prev) => prev.filter((n) => n.id !== newNotification.id));
-      }, 5000);
-    });
-
-    const startConnection = async () => {
-      try {
-        await connection.start();
-        console.log("Connected to NotificationHub");
-      } catch (err) {
-        console.error("Error connecting to NotificationHub", err);
-      }
-    };
-
-    startConnection();
-
-    return () => {
-      connection.stop();
-    };
-  }, [token, user]);
+      // Auto-dismiss toasts after 5 seconds
+      newNotifications.forEach(n => {
+        setTimeout(() => {
+          setActiveToasts((prev) => prev.filter((toast) => toast.id !== n.id));
+        }, 5000);
+      });
+    }
+  }, [notifications, token, user, shownIds]);
 
   return (
     <>
@@ -64,7 +47,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
       
       {/* Toast Container */}
       <div className="fixed bottom-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
-        {notifications.map((notif) => (
+        {activeToasts.map((notif) => (
           <div
             key={notif.id}
             className="pointer-events-auto bg-white dark:bg-gray-800 shadow-xl border border-gray-100 dark:border-gray-700 rounded-xl p-4 flex items-start gap-3 w-80 transform transition-all duration-300 translate-y-0 opacity-100"
@@ -81,7 +64,7 @@ export default function NotificationProvider({ children }: { children: React.Rea
               </p>
             </div>
             <button
-              onClick={() => setNotifications((prev) => prev.filter((n) => n.id !== notif.id))}
+              onClick={() => setActiveToasts((prev) => prev.filter((n) => n.id !== notif.id))}
               className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 flex-shrink-0"
             >
               <X className="w-4 h-4" />

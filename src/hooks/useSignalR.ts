@@ -25,6 +25,11 @@ export const useSignalR = () => {
       .build();
 
     setConnection(newConnection);
+    
+    // Fetch existing notifications from the DB when authenticated
+    const { fetchNotifications } = useNotificationStore.getState();
+    fetchNotifications(token);
+
   }, [isAuthenticated, token]);
 
   useEffect(() => {
