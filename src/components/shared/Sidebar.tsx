@@ -19,7 +19,8 @@ export default function Sidebar({ role }: SidebarProps) {
   const [showNotifications, setShowNotifications] = React.useState(false);
   
   useSignalR();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotificationStore();
+  const { notifications, unreadCount, markAsReadAsync, markAllAsReadAsync } = useNotificationStore();
+  const token = useAuthStore((state) => state.token);
 
   const candidateLinks = [
     { name: 'Dashboard', href: '/candidate/dashboard', icon: Home },
@@ -103,7 +104,7 @@ export default function Sidebar({ role }: SidebarProps) {
             <div className="absolute bottom-full left-0 w-72 mb-2 bg-neutral-900 border border-neutral-800 rounded-xl shadow-xl overflow-hidden z-50">
               <div className="p-3 border-b border-neutral-800 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-white">Notifications</h3>
-                <button onClick={markAllAsRead} className="text-xs text-blue-400 hover:text-blue-300">
+                <button onClick={() => markAllAsReadAsync(token!)} className="text-xs text-blue-400 hover:text-blue-300">
                   Mark all as read
                 </button>
               </div>
@@ -114,7 +115,7 @@ export default function Sidebar({ role }: SidebarProps) {
                   notifications.map(n => (
                     <div 
                       key={n.id} 
-                      onClick={() => markAsRead(n.id)}
+                      onClick={() => markAsReadAsync(n.id, token!)}
                       className={`p-3 border-b border-neutral-800/50 cursor-pointer hover:bg-neutral-800 transition-colors ${!n.read ? 'bg-blue-500/5' : ''}`}
                     >
                       <p className={`text-sm ${!n.read ? 'text-white font-medium' : 'text-neutral-400'}`}>

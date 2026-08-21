@@ -66,7 +66,7 @@ test.describe('Job Pipeline Flow', () => {
     await candidatePage.goto('/auth/register');
     await candidatePage.fill('input[name="fullName"]', 'Jane Doe');
     await candidatePage.fill('input[name="email"]', candidateEmail);
-    await candidatePage.fill('input[name="phone"]', '0987654321');
+    await candidatePage.fill('input[name="phone"]', '1987654321');
     await candidatePage.fill('input[name="password"]', candidatePassword);
     // Role is Candidate by default
     await candidatePage.getByRole('button', { name: 'Create Account' }).click();
