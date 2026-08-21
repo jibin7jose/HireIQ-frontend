@@ -2,14 +2,33 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { Briefcase, Users, Plus, ArrowRight, Loader2 } from 'lucide-react';
+import { Briefcase, Users, Plus, ArrowRight, Loader2, Sparkles, Target } from 'lucide-react';
 import api from '@/lib/api';
 import Link from 'next/link';
+
+interface TopCandidate {
+  applicationId: string;
+  candidateName: string;
+  jobTitle: string;
+  aiMatchScore: number;
+}
+
+interface StatsData {
+  activeJobs: number;
+  totalApplicants: number;
+  averageMatchScore: number;
+  topCandidates: TopCandidate[];
+}
 
 export default function EmployerDashboard() {
   const user = useAuthStore((state) => state.user);
   const [jobs, setJobs] = useState<any[]>([]);
-  const [statsData, setStatsData] = useState({ activeJobs: 0, totalApplicants: 0 });
+  const [statsData, setStatsData] = useState<StatsData>({ 
+    activeJobs: 0, 
+    totalApplicants: 0,
+    averageMatchScore: 0,
+    topCandidates: []
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +52,7 @@ export default function EmployerDashboard() {
   const stats = [
     { title: 'Active Jobs', value: statsData.activeJobs.toString(), icon: Briefcase, color: 'text-purple-500', bg: 'bg-purple-500/10' },
     { title: 'Total Applicants', value: statsData.totalApplicants.toString(), icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { title: 'Avg Match Score', value: statsData.averageMatchScore > 0 ? `${statsData.averageMatchScore}%` : 'N/A', icon: Target, color: 'text-indigo-500', bg: 'bg-indigo-500/10' }
   ];
 
   return (
@@ -49,7 +69,7 @@ export default function EmployerDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {stats.map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -66,44 +86,91 @@ export default function EmployerDashboard() {
         })}
       </div>
 
-      {/* Recent Jobs */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-white">Your Recent Postings</h2>
-          <Link href="/employer/jobs" className="text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center">
-            View all <ArrowRight className="w-4 h-4 ml-1" />
-          </Link>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Recent Jobs */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-white">Your Recent Postings</h2>
+            <Link href="/employer/jobs" className="text-sm font-medium text-blue-400 hover:text-blue-300 flex items-center">
+              View all <ArrowRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
 
-        {loading ? (
-          <div className="py-12 flex justify-center">
-            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-          </div>
-        ) : jobs.length === 0 ? (
-          <div className="py-12 text-center">
-            <p className="text-neutral-400">You haven't posted any jobs yet.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {jobs.map((job) => (
-              <div key={job.id} className="p-4 rounded-xl border border-neutral-800 bg-neutral-950/50 flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-white">{job.title}</h3>
-                  <div className="flex items-center text-sm text-neutral-400 mt-1 space-x-3">
-                    <span>{job.location}</span>
-                    <span>•</span>
-                    <span className="bg-neutral-800 px-2 py-0.5 rounded text-xs">{job.jobType}</span>
+          {loading ? (
+            <div className="py-12 flex justify-center">
+              <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-neutral-400">You haven't posted any jobs yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {jobs.map((job) => (
+                <div key={job.id} className="p-4 rounded-xl border border-neutral-800 bg-neutral-950/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-semibold text-white">{job.title}</h3>
+                    <div className="flex items-center text-sm text-neutral-400 mt-1 space-x-3">
+                      <span>{job.location}</span>
+                      <span>•</span>
+                      <span className="bg-neutral-800 px-2 py-0.5 rounded text-xs">{job.jobType}</span>
+                    </div>
                   </div>
-                </div>
                   <div className="flex items-center space-x-4 text-sm">
-                    <Link href={`/employer/jobs/${job.id}/applications`} className="text-blue-400 hover:text-blue-300 font-medium bg-blue-500/10 px-4 py-2 rounded-lg transition-colors">
+                    <Link href={`/employer/jobs/${job.id}/applications`} className="text-blue-400 hover:text-blue-300 font-medium bg-blue-500/10 px-4 py-2 rounded-lg transition-colors text-center w-full md:w-auto">
                       View Applicants
                     </Link>
                   </div>
                 </div>
-            ))}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* AI Top Candidates */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-indigo-500 to-purple-500" />
+          <div className="flex items-center justify-between mb-6 pl-2">
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-indigo-400" />
+              AI Top Candidates
+            </h2>
+            <p className="text-sm text-neutral-400">Across all open jobs</p>
           </div>
-        )}
+
+          {loading ? (
+            <div className="py-12 flex justify-center">
+              <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+            </div>
+          ) : statsData.topCandidates.length === 0 ? (
+            <div className="py-12 text-center pl-2">
+              <Sparkles className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
+              <p className="text-neutral-400">No candidates have been scored by AI yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-4 pl-2">
+              {statsData.topCandidates.map((candidate, idx) => (
+                <div key={idx} className="p-4 rounded-xl border border-indigo-900/30 bg-indigo-950/10 flex items-center justify-between transition-colors hover:bg-indigo-950/30">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-indigo-900/50 flex items-center justify-center flex-shrink-0">
+                      <span className="text-lg font-bold text-indigo-400">
+                        {candidate.candidateName.charAt(0)}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-white">{candidate.candidateName}</h3>
+                      <p className="text-sm text-neutral-400 mt-0.5">Applied for: {candidate.jobTitle}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center pl-4 border-l border-neutral-800">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400/70 mb-1">Match</span>
+                    <span className="text-xl font-black text-indigo-400">{candidate.aiMatchScore}%</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
