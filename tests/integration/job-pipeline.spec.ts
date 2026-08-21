@@ -91,6 +91,9 @@ test.describe('Job Pipeline Flow', () => {
     await candidatePage.waitForURL(/\/jobs\/.+/);
     await candidatePage.getByRole('button', { name: 'Apply Now' }).click();
     
+    // Wait for the modal to appear and click Submit Application
+    await candidatePage.getByRole('button', { name: 'Submit Application' }).click();
+
     // Verify application success (button changes to "Successfully Applied")
     await expect(candidatePage.locator('text=Successfully Applied')).toBeVisible();
 
