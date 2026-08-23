@@ -1,0 +1,48 @@
+import type { Metadata } from "next";
+import "./globals.css";
+import GlobalNavigation from "@/components/shared/GlobalNavigation";
+import GlobalFooter from "@/components/shared/GlobalFooter";
+import NotificationProvider from "@/components/shared/NotificationProvider";
+
+export const metadata: Metadata = {
+  title: "CareerConnect AI – Find Jobs Matched by AI",
+  description:
+    "AI-powered job matching platform connecting talent with top employers.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark')
+                } else {
+                  document.documentElement.classList.remove('dark')
+                }
+              } catch (_) {}
+            `,
+          }}
+        />
+      </head>
+      <body style={{ margin: 0, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <NotificationProvider>
+          <GlobalNavigation />
+          <main style={{ flex: 1 }}>{children}</main>
+          <GlobalFooter />
+        </NotificationProvider>
+      </body>
+    </html>
+  );
+}
