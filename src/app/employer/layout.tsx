@@ -30,7 +30,7 @@ export default function EmployerLayout({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 flex font-sans text-neutral-200">
+    <div className="dashboard-shell min-h-screen bg-neutral-950 flex font-sans text-neutral-200">
       <Sidebar role="Employer" />
       <main className="flex-1 ml-64 p-8">
         <div className="max-w-6xl mx-auto">
