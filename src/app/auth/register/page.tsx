@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Phone, Briefcase, GraduationCap, Loader2, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User, Phone, Briefcase, GraduationCap, Loader2, ArrowRight, Eye, EyeOff, Check, Circle } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function RegisterPage() {
@@ -19,6 +19,15 @@ export default function RegisterPage() {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  const passwordRequirements = [
+    { label: 'At least 8 characters', valid: formData.password.length >= 8 },
+    { label: 'At least one uppercase letter', valid: /[A-Z]/.test(formData.password) },
+    { label: 'At least one number', valid: /[0-9]/.test(formData.password) },
+    { label: 'At least one special character', valid: /[^A-Za-z0-9\s]/.test(formData.password) },
+  ];
+  const isPasswordValid = passwordRequirements.every((requirement) => requirement.valid);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -120,29 +129,51 @@ export default function RegisterPage() {
               type="tel" 
               name="phone"
               placeholder="Phone number"
+              required
               value={formData.phone}
               onChange={handleChange}
               className="w-full bg-neutral-950/50 border border-neutral-800 text-white pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-neutral-600"
             />
           </div>
           
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
-            <input 
-              type="password" 
-              name="password"
-              placeholder="Password (min 6 chars, 1 uppercase)"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full bg-neutral-950/50 border border-neutral-800 text-white pl-10 pr-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-neutral-600"
-            />
+          <div>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-500" />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                placeholder="Password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                aria-describedby="password-requirements"
+                autoComplete="new-password"
+                className="w-full bg-neutral-950/50 border border-neutral-800 text-white pl-10 pr-12 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all placeholder:text-neutral-600"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((visible) => !visible)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+            <ul id="password-requirements" aria-live="polite" className="mt-2 space-y-1 pl-1 text-xs">
+              {passwordRequirements.map((requirement) => (
+                <li key={requirement.label} className={`flex items-center gap-2 ${requirement.valid ? 'text-emerald-400' : 'text-neutral-500'}`}>
+                  {requirement.valid ? <Check aria-hidden="true" className="h-3.5 w-3.5" /> : <Circle aria-hidden="true" className="h-3 w-3" />}
+                  <span>{requirement.label}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
         <button 
           type="submit" 
-          disabled={loading}
+          disabled={loading || !isPasswordValid}
           className="w-full flex items-center justify-center space-x-2 bg-white text-black font-medium py-2.5 rounded-xl hover:bg-neutral-200 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all disabled:opacity-70 disabled:cursor-not-allowed mt-4"
         >
           {loading ? (

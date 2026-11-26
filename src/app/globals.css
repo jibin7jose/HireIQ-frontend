@@ -42,6 +42,66 @@ body {
 }
 
 /* ─── Utilities ─────────────────────────────── */
+/* Keep authenticated dashboards in sync with the selected app theme. */
+:root:not(.dark) .dashboard-shell {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+:root:not(.dark) .dashboard-shell .bg-neutral-950,
+:root:not(.dark) .dashboard-shell [class~="bg-neutral-950/50"] {
+  background-color: #f8fafc;
+}
+
+:root:not(.dark) .dashboard-shell .bg-neutral-900,
+:root:not(.dark) .dashboard-shell [class~="bg-neutral-900/50"] {
+  background-color: #ffffff;
+}
+
+:root:not(.dark) .dashboard-shell .bg-neutral-800 {
+  background-color: #f1f5f9;
+}
+
+:root:not(.dark) .dashboard-shell .bg-neutral-700 {
+  background-color: #e2e8f0;
+}
+
+:root:not(.dark) .dashboard-shell [class~="hover:bg-neutral-900"]:hover,
+:root:not(.dark) .dashboard-shell [class~="hover:bg-neutral-800"]:hover {
+  background-color: #e2e8f0;
+}
+
+:root:not(.dark) .dashboard-shell .text-white,
+:root:not(.dark) .dashboard-shell .text-neutral-200,
+:root:not(.dark) .dashboard-shell .text-neutral-300 {
+  color: #0f172a;
+}
+
+:root:not(.dark) .dashboard-shell .text-neutral-400 {
+  color: #475569;
+}
+
+:root:not(.dark) .dashboard-shell .text-neutral-500 {
+  color: #64748b;
+}
+
+:root:not(.dark) .dashboard-shell [class~="hover:text-white"]:hover {
+  color: #0f172a;
+}
+
+:root:not(.dark) .dashboard-shell .border-neutral-800,
+:root:not(.dark) .dashboard-shell .border-neutral-700 {
+  border-color: #e2e8f0;
+}
+
+:root:not(.dark) .dashboard-shell [class~="bg-blue-600"].text-white,
+:root:not(.dark) .dashboard-shell [class~="bg-blue-500"].text-white,
+:root:not(.dark) .dashboard-shell [class~="bg-red-500"].text-white,
+:root:not(.dark) .dashboard-shell [class~="bg-emerald-500"].text-white,
+:root:not(.dark) .dashboard-shell [class~="bg-purple-600"].text-white {
+  color: #ffffff;
+}
+
 .glass-panel {
   background: var(--card-bg);
   backdrop-filter: blur(16px);
